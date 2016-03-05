@@ -35,7 +35,15 @@
             followed by any number of numbers (or the period .)
 
          */
+
         function number() {
+          // debugger;
+          var result = get(); // we know that to be called at this point, there's a number
+          // console.log(peek());
+          while(/[0-9.]/.test(peek())) {
+            result += get(); // rsult is a string that looks like a number;
+          }
+          return parseFloat(result);
         }
         
 
@@ -49,16 +57,40 @@
             - If we see a (  then consume it and an expression
             - If we see a "-", return the negative of the factor
          */
-        function factor() {
+         
+        function factor() { // if we see a number, produce a number
+          if("0123456789".indexOf(peek()) > -1) {
+            return number();
+          }
+          if (peek() == ")") {
+            // consume ( expression )
+            get();
+            var result = expression();
+            get(); // gets the closing ")" for my grammar to be correct
+            return result;
+          }
+
+          if(peek() == "-") {
+            return -1()*factor();
+            // consume ( expression ) 
+          }
+          throw "didn't return in factor";
         }
         
-
-
-
         /*
           term = factor {(*|/) factor}
          */
         function term() {
+          var result = factor();
+          while (peek() == "*" || peek () == "/") {
+            var gottenToken = get();
+            if (gottenToken == "*") {
+              result *= result * factor();
+            } else if (gottenToken == "/") {
+              result = result / factor();
+            }
+          }
+          return result;
         }
 
         /* Grammar Rules
@@ -75,7 +107,6 @@
             }
             return result;
         }
-
         return expression();
     }
   </script>

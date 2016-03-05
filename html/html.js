@@ -1,13 +1,13 @@
 function HTMLParser() {
 	// Variables shared by the parsing functions
 	// to keep track of the data
-	var pos = 0, input = '';
+	var pos = 0, input = ''; // we're shifting off + keeping track of where we are.
 	
 	// Used in your parser to throw errors
 	var assert = function(condition) {
 		if(!condition) {
 			throw new Error("test failed");
-		}
+		} // if not true throw an error
 	}
 
 	function parse(html) {
@@ -43,6 +43,23 @@ function HTMLParser() {
 	function parseNode() {
 		// if the first char is a <, parse an Element
   	// else parseText
+
+
+  	
+  	/* if (startsWith("<")) {
+					
+
+
+  	}
+  	*/
+
+  	if (nextChar() === "<") {
+  		return parseElement();
+  	} else {
+  		return parseText();
+  	}
+
+
 	}
 
 
@@ -56,7 +73,7 @@ function HTMLParser() {
 		var tagName = parseTagName();
 
 		// TODO: parseAttributes
-		var attrs;
+		var attrs = parseAttributes();
 
 		// check that we've got an end >
 		// 
@@ -64,7 +81,7 @@ function HTMLParser() {
     assert(consumeChar() === '>');
 
 		// TODO: Parse all it's children Nodes (using parseNodes)
-		var children;
+		var children = parseNodes();
 
     // check that we have a matching end tag
     // and that the tag is the same 
@@ -79,13 +96,22 @@ function HTMLParser() {
 	}
 
 	// this will return the tagName as a String
-	function parseTagName() {
-		function isTagNameChar(str) {
-			var nextChar = str.charAt(0);
-			return /[A-Za-z0-9]/.test(nextChar);
-		}
 
-		return consumeWhile(isTagNameChar);
+	// will keep consuming characters that pass those rules
+
+	function parseTagName() {
+
+		var tagName = "";
+		while(/[A-Za-z0-9]/.test(nextChar())) {
+			tagName += consumeChar();
+		}
+		return tagName;
+		// function isTagNameChar(str) {
+		// 	var nextChar = str.charAt(0);
+		// 	return /[A-Za-z0-9]/.test(nextChar);
+		// }
+
+		// return consumeWhile(isTagNameChar);
 	}
 
 	// Step 3: Parse a set of attributes inside the element
@@ -97,7 +123,19 @@ function HTMLParser() {
 	// attributes = attr*
 	function parseAttributes() {
 		var attributes = {};
-		// PARSE ATTRIBUTES
+		
+		while(true) {
+
+			consumeWhiteSpace(); // while true, eat up all the 
+			// white space (between tag and attritubes)
+			// keep going until we see: 
+			if(nextChar() === '>') {break;}
+
+			var attrData = parseAttribute();
+
+			// merging into 1 attritube object
+			attributes[attrData.name] = attrData.value;
+		}
 
     
     
@@ -109,6 +147,10 @@ function HTMLParser() {
 	function parseAttribute() {
 		var name, value;
 
+		name = parseTagName();
+		assert(consumeChar() === '='); // consume =
+		value = parseAttributeValue();
+
 		return {
 			name: name,
 			value: value
@@ -119,9 +161,15 @@ function HTMLParser() {
 	// Step 5: Parse a Quoted Value "myClass"
 	// class="sectionTitle slider-image"
 	function parseAttributeValue() {
-		// check for a quote
-		// similar to parseTagName - get everything that's not an end-quote: "
-		// check for end quote 
+
+		var value = ""
+		if (nextChar() === '"'){
+			consumeChar();
+		}
+		while (nextChar() !== '"'){
+			value += consumeChar();
+		}
+		consumeChar();
 		return value;
 
 	}
@@ -158,7 +206,7 @@ function HTMLParser() {
 		return result;
 	}
 
-
+// get and peek in calculator parser
 	function consumeChar() {
 		return input.charAt(pos++);
 	}
@@ -171,6 +219,7 @@ function HTMLParser() {
 		return input.substr(pos).indexOf(str) === 0;
 	}
 
+// once that's true we've parsed all tokens
 	function eof() {
 		return pos >= input.length;
 	}
